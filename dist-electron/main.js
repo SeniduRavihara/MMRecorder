@@ -1,7 +1,8 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain, desktopCapturer, dialog } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { writeFile } from "node:fs";
 createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -38,6 +39,24 @@ app.on("activate", () => {
   }
 });
 app.whenReady().then(createWindow);
+ipcMain.on("greet", (_event, args) => {
+  console.log(args);
+});
+ipcMain.handle("getName2", (_event, args) => {
+  return "Hello1";
+});
+ipcMain.handle("getSources", async (_event, options) => {
+  return await desktopCapturer.getSources(options);
+});
+ipcMain.on("saveFile", async (_event, options) => {
+  const { filePath, buffer } = options;
+  if (filePath) {
+    writeFile(filePath, buffer, () => console.log("Video saved successfully!"));
+  }
+});
+ipcMain.handle("buildMenu", async (_event, menuItems) => {
+  return await dialog.showSaveDialog(menuItems);
+});
 export {
   MAIN_DIST,
   RENDERER_DIST,
