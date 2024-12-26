@@ -38,11 +38,9 @@ const WINDOW_API = {
 
   buildMenu: () => ipcRenderer.invoke("buildMenu"),
 
-  saveFile: (options: { filePath: any; buffer: any }) =>
-    ipcRenderer.send("saveFile", options),
-
-  showSaveDialog: (options: Electron.SaveDialogOptions) =>
-    ipcRenderer.invoke("showSaveDialog", options),
+  showSaveDialog: (options) => ipcRenderer.invoke("showSaveDialog", options),
+  
+  saveFile: (data) => ipcRenderer.invoke("saveFile", data),
 
   onSourceSelected: (callback) =>
     ipcRenderer.on("source-selected", (_event, source) => callback(source)),

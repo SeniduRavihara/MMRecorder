@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { writeFile } from "node:fs";
+import fs from "fs";
 createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -69,7 +70,45 @@ ipcMain.handle("buildMenu", async (event) => {
   videoOptionsMenu.popup();
 });
 ipcMain.handle("showSaveDialog", async (_event, options) => {
-  return await dialog.showSaveDialog(options);
+  const result = await dialog.showSaveDialog(options);
+  return result;
+});
+ipcMain.handle("saveFile", async (_event, arrayBuffer) => {
+  try {
+    const result = await dialog.showSaveDialog({
+      buttonLabel: "Save video",
+      defaultPath: `vid-${Date.now()}.webm`,
+      filters: [
+        {
+          name: "WebM Video",
+          extensions: ["webm"]
+        }
+      ]
+    });
+    const { filePath } = result;
+    console.log("Selected file path:", filePath);
+    if (!filePath) {
+      throw new Error(
+        "File path is missing. The user canceled the save dialog."
+      );
+    }
+    const buffer = Buffer.from(arrayBuffer);
+    console.log("Buffer created from ArrayBuffer:", buffer);
+    await new Promise((resolve, reject) => {
+      fs.writeFile(filePath, buffer, (err) => {
+        if (err) {
+          reject(`Error writing file: ${err}`);
+        } else {
+          resolve();
+        }
+      });
+    });
+    console.log("File saved successfully at", filePath);
+    return "File saved successfully!";
+  } catch (error) {
+    console.error("Error in saveFile:", error);
+    throw new Error(`Failed to save file: ${error.message || error}`);
+  }
 });
 export {
   MAIN_DIST,

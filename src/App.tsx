@@ -29,7 +29,6 @@ function App() {
 
   // Select a video source
   const selectSource = async (source: { id: string; name: string }) => {
-
     const constraints = {
       audio: false,
       video: {
@@ -66,32 +65,26 @@ function App() {
   };
 
   // Save the video file
-  const handleStop = async () => {
-    const blob = new Blob(recordedChunksRef.current, {
-      type: "video/webm; codecs=vp9",
-    });
+ const handleStop = async () => {
+   // Create a Blob from the recorded chunks
+   const blob = new Blob(recordedChunksRef.current, {
+     type: "video/webm; codecs=vp9",
+   });
 
-    // const buffer = Buffer.from(await blob.arrayBuffer());
+   // Log the size of the Blob
+   console.log("Blob size:", blob.size);
 
-    const { filePath } = await window.api.showSaveDialog({
-      buttonLabel: "Save video",
-      defaultPath: `vid-${Date.now()}.webm`,
-    });
+   // Convert Blob to ArrayBuffer
+   const arrayBuffer = await blob.arrayBuffer();
 
-    // if (filePath) {
-    //   writeFile(filePath, buffer, () =>
-    //     console.log("Video saved successfully!")
-    //   );
-    // }
+   // Log the size of the ArrayBuffer
+   console.log("ArrayBuffer size:", arrayBuffer.byteLength);
 
-    console.log("STOPPED", filePath);
-    
+   // Send the ArrayBuffer to the main process
+   const result = await window.api.saveFile(arrayBuffer);
+   console.log(result);
+ };
 
-    window.api.saveFile({
-      filePath,
-      buffer,
-    });
-  };
 
   // Start recording
   const startRecording = () => {

@@ -12,6 +12,7 @@ import path from "node:path";
 import { writeFile } from "node:fs";
 import { selectSource } from "./recFunctions";
 import { log } from "node:console";
+import fs from "fs";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -143,5 +144,54 @@ ipcMain.handle("buildMenu", async (event) => {
 });
 
 ipcMain.handle("showSaveDialog", async (_event, options) => {
-  return await dialog.showSaveDialog(options);
+  const result = await dialog.showSaveDialog(options);
+  return result; // Contains the `filePath` if a file is chosen
+});
+
+ipcMain.handle("saveFile", async (_event, arrayBuffer) => {
+  try {
+    // Show the save dialog and get the selected file path
+    const result = await dialog.showSaveDialog({
+      buttonLabel: "Save video",
+      defaultPath: `vid-${Date.now()}.webm`,
+      filters: [
+        {
+          name: "WebM Video",
+          extensions: ["webm"],
+        },
+      ],
+    });
+
+    const { filePath } = result;
+    console.log("Selected file path:", filePath);
+
+    // Check if the user canceled the save dialog
+    if (!filePath) {
+      throw new Error(
+        "File path is missing. The user canceled the save dialog."
+      );
+    }
+
+    // Convert the ArrayBuffer to a Buffer
+    const buffer = Buffer.from(arrayBuffer);
+    console.log("Buffer created from ArrayBuffer:", buffer);
+
+    // Write the buffer to the selected file path
+    await new Promise<void>((resolve, reject) => {
+      fs.writeFile(filePath, buffer, (err) => {
+        if (err) {
+          reject(`Error writing file: ${err}`);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    // Return success message
+    console.log("File saved successfully at", filePath);
+    return "File saved successfully!";
+  } catch (error) {
+    console.error("Error in saveFile:", error);
+    throw new Error(`Failed to save file: ${error.message || error}`);
+  }
 });

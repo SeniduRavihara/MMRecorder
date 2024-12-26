@@ -30,8 +30,8 @@ const WINDOW_API = {
   // Desktop Capturer API
   getSources: (options) => electron.ipcRenderer.invoke("getSources", options),
   buildMenu: () => electron.ipcRenderer.invoke("buildMenu"),
-  saveFile: (options) => electron.ipcRenderer.send("saveFile", options),
   showSaveDialog: (options) => electron.ipcRenderer.invoke("showSaveDialog", options),
+  saveFile: (data) => electron.ipcRenderer.invoke("saveFile", data),
   onSourceSelected: (callback) => electron.ipcRenderer.on("source-selected", (_event, source) => callback(source))
 };
 electron.contextBridge.exposeInMainWorld("api", WINDOW_API);
