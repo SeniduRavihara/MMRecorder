@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, desktopCapturer, dialog } from "electron";
+import { app, BrowserWindow, ipcMain, desktopCapturer, Menu, dialog } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -54,8 +54,22 @@ ipcMain.on("saveFile", async (_event, options) => {
     writeFile(filePath, buffer, () => console.log("Video saved successfully!"));
   }
 });
-ipcMain.handle("buildMenu", async (_event, menuItems) => {
-  return await dialog.showSaveDialog(menuItems);
+ipcMain.handle("buildMenu", async (event) => {
+  const inputSources = await desktopCapturer.getSources({
+    types: ["window", "screen"]
+  });
+  const videoOptionsMenu = Menu.buildFromTemplate(
+    inputSources.map((source) => ({
+      label: source.name,
+      click: () => {
+        event.sender.send("source-selected", source);
+      }
+    }))
+  );
+  videoOptionsMenu.popup();
+});
+ipcMain.handle("showSaveDialog", async (_event, options) => {
+  return await dialog.showSaveDialog(options);
 });
 export {
   MAIN_DIST,

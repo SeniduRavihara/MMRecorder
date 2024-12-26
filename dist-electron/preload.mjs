@@ -29,7 +29,9 @@ const WINDOW_API = {
   // getData: () => ipcRenderer.invoke("getData"),
   // Desktop Capturer API
   getSources: (options) => electron.ipcRenderer.invoke("getSources", options),
-  buildMenu: (menuItems) => electron.ipcRenderer.invoke("buildMenu", menuItems),
-  saveFile: (options) => electron.ipcRenderer.send("saveFile", options)
+  buildMenu: () => electron.ipcRenderer.invoke("buildMenu"),
+  saveFile: (options) => electron.ipcRenderer.send("saveFile", options),
+  showSaveDialog: (options) => electron.ipcRenderer.invoke("showSaveDialog", options),
+  onSourceSelected: (callback) => electron.ipcRenderer.on("source-selected", (_event, source) => callback(source))
 };
 electron.contextBridge.exposeInMainWorld("api", WINDOW_API);

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
 
 function App() {
@@ -9,25 +9,26 @@ function App() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<BlobPart[]>([]);
 
+  useEffect(() => {
+    window.api.onSourceSelected((source: any) => {
+      setSelectedSource(source.name);
+      console.log("Selected source:", source);
+      selectSource({ id: source.id, name: source.name });
+      // Handle the selected source in the renderer process
+    });
+  }, []);
+
   // Get the available video sources
   const getVideoSources = async () => {
-    const inputSources = await window.api.getSources({
-      types: ["window", "screen"],
-    });
+    await window.api.buildMenu();
 
-    const videoOptionsMenu = window.api.buildMenu(
-      inputSources.map((source) => ({
-        label: source.name,
-        click: () => selectSource(source),
-      }))
-    );
+    // console.log(selectedSource);
 
-    videoOptionsMenu.popup();
+    // videoOptionsMenu.popup();
   };
 
   // Select a video source
   const selectSource = async (source: { id: string; name: string }) => {
-    setSelectedSource(source.name);
 
     const constraints = {
       audio: false,
@@ -40,7 +41,9 @@ function App() {
     };
 
     // Create a stream
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const stream = await navigator.mediaDevices.getUserMedia(
+      constraints as any
+    );
 
     // Set stream to the video element
     if (videoRef.current) {
@@ -68,7 +71,7 @@ function App() {
       type: "video/webm; codecs=vp9",
     });
 
-    const buffer = Buffer.from(await blob.arrayBuffer());
+    // const buffer = Buffer.from(await blob.arrayBuffer());
 
     const { filePath } = await window.api.showSaveDialog({
       buttonLabel: "Save video",
@@ -80,6 +83,9 @@ function App() {
     //     console.log("Video saved successfully!")
     //   );
     // }
+
+    console.log("STOPPED", filePath);
+    
 
     window.api.saveFile({
       filePath,

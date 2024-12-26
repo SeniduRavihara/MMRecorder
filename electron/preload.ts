@@ -36,11 +36,16 @@ const WINDOW_API = {
   getSources: (options: Electron.SourcesOptions) =>
     ipcRenderer.invoke("getSources", options),
 
-  buildMenu: (menuItems: Electron.MenuItemConstructorOptions[]) =>
-    ipcRenderer.invoke("buildMenu", menuItems),
+  buildMenu: () => ipcRenderer.invoke("buildMenu"),
 
   saveFile: (options: { filePath: any; buffer: any }) =>
     ipcRenderer.send("saveFile", options),
+
+  showSaveDialog: (options: Electron.SaveDialogOptions) =>
+    ipcRenderer.invoke("showSaveDialog", options),
+
+  onSourceSelected: (callback) =>
+    ipcRenderer.on("source-selected", (_event, source) => callback(source)),
 };
 
 contextBridge.exposeInMainWorld("api", WINDOW_API);
